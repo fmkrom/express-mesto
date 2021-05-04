@@ -12,8 +12,6 @@ module.exports.createCard = (req, res, next) => {
     const userId = req.user._id;
     const{ name, link } = req.body;
     
-    console.log('This is request body:', req.body);
-    
     Card.create({ 
             name: req.body.name, 
             link: req.body.link,
@@ -25,33 +23,37 @@ module.exports.createCard = (req, res, next) => {
             console.log('This is New Card:', card);
             res.send({ card });
         })
-        .catch(err => res.status(500).send({ message:`${err.message}`}))
-        //${res.name}, ${res.link}, ${res.owner}. Ошибка создания карточки. Имя карточки: ${req.body.name}, Ссылка: ${req.body.link}, Пользователь: ${userId}` }))
-        .catch(next); 
+        .catch(err => res.status(500).send({ message:`Ошибка создания карточки: ${err.message}`}))
+        .catch(next);
 }; 
 
 module.exports.deleteCard = (req, res, next) => {
-  
-  console.log('This is req.params:', req.params.cardId);
-  
   const cardId = req.params.cardId;
 
-  console.log('This is carId:', cardId);
-  
   Card.findByIdAndDelete(cardId)
   .then(deletedCard => res.send({deletedCard}))
-  .catch(() => res.status(500).send({ message: `Ошибка удаления карточки`}))
+  .catch((err) => res.status(500).send({ message: `Ошибка удаления карточки: ${err}`}))
   .catch(next);
-}
+};
 
-module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
-  req.params.cardId,
-  { $addToSet: { likes: req.user._id } }, 
-  { new: true },
-)
+module.exports.likeCard = (req, res, next) =>{
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } }, 
+    { new: true })
+  .then(likedCard => res.send({likedCard}))
+  .catch((err) => res.status(500).send({ message: `Ошибка лайка карточки: ${err}`}))
+  .catch(next);
+};
+ 
   
-module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.dislikeCard = (req, res, next) =>{
+  Card.findByIdAndUpdate(
   req.params.cardId,
   { $pull: { likes: req.user._id } }, 
-  { new: true },
-) 
+  { new: true })
+  .then(dislikedCard => res.send({dislikedCard}))
+  .catch((err) => res.status(500).send({ message: `Ошибка дизлайка карточки: ${err}`}))
+  .catch(next);  
+}; 
+
