@@ -31,8 +31,18 @@ module.exports.updateUserProfile = (req, res, next) =>{
     const {name, about} = req.body;
 
     User.findByIdAndUpdate(userId, {name: name, about: about}, {new: true})
-    .then((user)=> res.send({user}))
+    .then((updatedUser)=> res.send({updatedUser}))
     .catch((err) =>res.status(500).send({ message: `Ошибка обновления профиля: ${err}` }))
+    .catch(next);
+};
+
+module.exports.updateUserAvatar = (req, res, next) =>{
+    const userId = req.user._id;
+    const {avatar} = req.body;
+
+    User.findByIdAndUpdate(userId, { avatar: avatar }, {new: true})
+    .then((updatedUser)=> res.send({updatedUser}))
+    .catch((err) =>res.status(500).send({ message: `Ошибка обновления аватара: ${err}` }))
     .catch(next);
 };
 
