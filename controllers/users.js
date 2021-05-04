@@ -9,7 +9,7 @@ module.exports.getUsers = (req, res, next) =>{
 }
 
 module.exports.getUserById = (req, res, next) =>{
-    const id = req.user.id;
+    const id = req.user._id;
 
     User.findById(id)
         .then(user => res.send({user}))
