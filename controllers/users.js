@@ -25,3 +25,4 @@ module.exports.createUser = (req, res, next) =>{
     .catch(() => res.status(500).send({ message: `Error creating user` }))
     .catch(next);
 }
+

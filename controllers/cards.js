@@ -30,14 +30,28 @@ module.exports.createCard = (req, res, next) => {
         .catch(next); 
 }; 
 
-module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } }, 
-    { new: true },
-  )
+module.exports.deleteCard = (req, res, next) => {
   
-  module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } }, 
-    { new: true },
-  ) 
+  console.log('This is req.params:', req.params.cardId);
+  
+  const cardId = req.params.cardId;
+
+  console.log('This is carId:', cardId);
+  
+  Card.findByIdAndDelete(cardId)
+  .then(deletedCard => res.send({deletedCard}))
+  .catch(() => res.status(500).send({ message: `Ошибка удаления карточки`}))
+  .catch(next);
+}
+
+module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
+  req.params.cardId,
+  { $addToSet: { likes: req.user._id } }, 
+  { new: true },
+)
+  
+module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
+  req.params.cardId,
+  { $pull: { likes: req.user._id } }, 
+  { new: true },
+) 
