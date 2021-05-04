@@ -9,9 +9,9 @@ module.exports.getUsers = (req, res, next) =>{
 }
 
 module.exports.getUserById = (req, res, next) =>{
-    const id = req.user._id;
+    const userId = req.user._id;
 
-    User.findById(id)
+    User.findById(userId)
         .then(user => res.send({user}))
         .catch(() => res.status(500).send({ message: `Ошибка поиска пользователя по Id`}))
         .catch(next);
@@ -25,4 +25,15 @@ module.exports.createUser = (req, res, next) =>{
     .catch(() => res.status(500).send({ message: `Error creating user` }))
     .catch(next);
 }
+
+module.exports.updateUserProfile = (req, res, next) =>{
+    const userId = req.user._id;
+    const {name, about} = req.body;
+
+    User.findByIdAndUpdate(userId, {name: name, about: about}, {new: true})
+    .then((user)=> res.send({user}))
+    .catch((err) =>res.status(500).send({ message: `Ошибка обновления профиля: ${err}` }))
+    .catch(next);
+};
+
 
