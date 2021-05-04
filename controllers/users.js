@@ -17,7 +17,6 @@ module.exports.getUserById = (req, res, next) =>{
         .catch(next);
 };
 
-
 module.exports.createUser = (req, res, next) =>{
     const{ name, about, avatar } = req.body;
 

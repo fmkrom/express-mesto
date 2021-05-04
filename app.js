@@ -16,12 +16,14 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 
 app.use((req, res, next) => {
     req.user = {
-      _id: '6090139ec20090384405a923' // User: A kid from China
+      _id: '60915708c187ca6b8806aa64' 
+      // User: Linux User
     };
     next();
   }); 
 
-app.use('/', require('./routes/users'));
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`)
