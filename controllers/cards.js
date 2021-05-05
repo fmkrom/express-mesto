@@ -1,11 +1,17 @@
 const { ModuleFilenameHelpers } = require('webpack');
 const Card = require('../models/card');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .populate('user')
     .then(cards => res.send({ data: cards }))
-    .catch(err => res.status(500).send({ message: `Данные карточек не найдены: ${err.message}` }));
+    .catch((err) => {
+      if (err.name === 'NotFound') {
+        res.status(404).send({ message: `Данные карточек не найдены: ${err}` })    
+      } else {
+        res.status(500).send({ message: `При получении данных карточек произошла ошибка на сервере: ${err}` })    
+      }
+    }).catch(next);
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -23,16 +29,30 @@ module.exports.createCard = (req, res, next) => {
             console.log('This is New Card:', card);
             res.send({ card });
         })
-        .catch(err => res.status(500).send({ message:`Ошибка создания карточки: ${err.message}`}))
+        .catch((err) => {
+          if (err.name === 'CastError') {
+            res.status(400).send({ message: `Переданы некорректные данные для создания карточки: ${err}` })    
+          } else {
+            res.status(500).send({ message: `Ошибка на сервере: ${err}` })    
+          }
+        })
         .catch(next);
-}; 
+};
 
 module.exports.deleteCard = (req, res, next) => {
   const cardId = req.params.cardId;
 
   Card.findByIdAndDelete(cardId)
   .then(deletedCard => res.send({deletedCard}))
-  .catch((err) => res.status(500).send({ message: `Ошибка удаления карточки: ${err}`}))
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: `Переданы некорректные данные для удаления карточки: ${err}` })    
+    } else if (err.name === 'NotFound') {
+      res.status(404).send({ message: `Данные удаляемой карточки не найдены: ${err}` })    
+    } else {
+      res.status(500).send({ message: `Ошибка на сервере: ${err}` })    
+  }
+  })
   .catch(next);
 };
 
@@ -42,7 +62,15 @@ module.exports.likeCard = (req, res, next) =>{
     { $addToSet: { likes: req.user._id } }, 
     { new: true })
   .then(likedCard => res.send({likedCard}))
-  .catch((err) => res.status(500).send({ message: `Ошибка лайка карточки: ${err}`}))
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: `Переданы некорректные данные для лайка карточки: ${err}` })    
+    } else if (err.name === 'NotFound') {
+        res.status(404).send({ message: `Данные карточки для постановки лайка не найдены: ${err}` })    
+    } else {
+        res.status(500).send({ message: `При постановке лайка произошла ошибка на сервере: ${err}` })    
+    }
+  })
   .catch(next);
 };
  
@@ -53,7 +81,14 @@ module.exports.dislikeCard = (req, res, next) =>{
   { $pull: { likes: req.user._id } }, 
   { new: true })
   .then(dislikedCard => res.send({dislikedCard}))
-  .catch((err) => res.status(500).send({ message: `Ошибка дизлайка карточки: ${err}`}))
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      res.status(400).send({ message: `Переданы некорректные данные для дизлайка карточки: ${err}` })    
+    } else if (err.name === 'NotFound') {
+        res.status(404).send({ message: `Данные карточки для снятия лайка не найдены: ${err}` })    
+    } else {
+        res.status(500).send({ message: `При снятии лайка произошла ошибка на сервере: ${err}` })    
+    }
+  })
   .catch(next);  
 }; 
-
