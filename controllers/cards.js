@@ -4,13 +4,7 @@ module.exports.getCards = (req, res, next) => {
   Card.find({})
     .populate('user')
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => {
-      if (err.name === 'NotFound') {
-        res.status(404).send({ message: `Данные карточек не найдены: ${err}` });
-      } else {
-        res.status(500).send({ message: `При получении данных карточек произошла ошибка на сервере: ${err}` });
-      }
-    })
+    .catch((err) => res.status(500).send({ message: `При получении данных карточек произошла ошибка на сервере: ${err}` }))
     .catch(next);
 };
 
@@ -29,7 +23,7 @@ module.exports.createCard = (req, res, next) => {
       res.send({ card });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         res.status(400).send({ message: `Переданы некорректные данные для создания карточки: ${err}` });
       } else {
         res.status(500).send({ message: `Ошибка на сервере: ${err}` });
@@ -47,7 +41,7 @@ module.exports.deleteCard = (req, res, next) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для удаления карточки: ${err}` });
       } else if (err.name === 'NotFound') {
-        res.status(404).send({ message: `Данные удаляемой карточки не найдены: ${err}` });
+        res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `Ошибка на сервере: ${err}` });
       }
@@ -66,7 +60,7 @@ module.exports.likeCard = (req, res, next) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для лайка карточки: ${err}` });
       } else if (err.name === 'NotFound') {
-        res.status(404).send({ message: `Данные карточки для постановки лайка не найдены: ${err}` });
+        res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При постановке лайка произошла ошибка на сервере: ${err}` });
       }
@@ -85,7 +79,7 @@ module.exports.dislikeCard = (req, res, next) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для дизлайка карточки: ${err}` });
       } else if (err.name === 'NotFound') {
-        res.status(404).send({ message: `Данные карточки для снятия лайка не найдены: ${err}` });
+        res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При снятии лайка произошла ошибка на сервере: ${err}` });
       }
