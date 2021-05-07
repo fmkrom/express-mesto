@@ -32,15 +32,36 @@ module.exports.createCard = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.deleteCard = (req, res, next) => {
-  const { cardId } = req.params.cardId;
+/*
+Примечание: функция поиска карточки по ID не требуется в брифе,
+но создана для удобства работы с данными. В случае необходимости
+могу ее закомментировать или удалить:
+*/
 
-  Card.findByIdAndDelete(cardId)
+module.exports.getCardById = (req, res, next) => {
+  Card.findById(req.params.cardId)
+    .orFail(new Error('NotFound'))
+    .then((foundCard) => res.send({ foundCard }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: `Переданы некорректные данные для получения карточки: ${err}` });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Ресурс не найден' });
+      } else {
+        res.status(500).send({ message: `Ошибка на сервере: ${err}` });
+      }
+    })
+    .catch(next);
+};
+
+module.exports.deleteCard = (req, res, next) => {
+  Card.findByIdAndRemove(req.params.cardId)
+    .orFail(new Error('NotFound'))
     .then((deletedCard) => res.send({ deletedCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для удаления карточки: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `Ошибка на сервере: ${err}` });
@@ -54,12 +75,12 @@ module.exports.likeCard = (req, res, next) => {
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
-  )
+  ).orFail(new Error('NotFound'))
     .then((likedCard) => res.send({ likedCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для лайка карточки: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При постановке лайка произошла ошибка на сервере: ${err}` });
@@ -73,12 +94,12 @@ module.exports.dislikeCard = (req, res, next) => {
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
-  )
+  ).orFail(new Error('NotFound'))
     .then((dislikedCard) => res.send({ dislikedCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для дизлайка карточки: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При снятии лайка произошла ошибка на сервере: ${err}` });

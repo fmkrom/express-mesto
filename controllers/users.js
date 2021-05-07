@@ -12,10 +12,11 @@ module.exports.getUserById = (req, res, next) => {
 
   User.findById(userId)
     .then((user) => res.send({ user }))
+    .orFail(new Error('NotFound'))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Данные пользователя не найдены: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При поиске пользователя произошла ошибка на сервере: ${err}` });
@@ -44,11 +45,12 @@ module.exports.updateUserProfile = (req, res, next) => {
     { name: req.body.name, about: req.body.about },
     { runValidators: true },
     { new: true })
+    .orFail(new Error('NotFound'))
     .then((updatedUser) => res.send({ updatedUser }))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для обновления профиля: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При обновлении профиля пользователя произошла ошибка на сервере: ${err}` });
@@ -62,13 +64,15 @@ module.exports.updateUserAvatar = (req, res, next) => {
 
   User.findByIdAndUpdate(userId, { avatar: req.body.avatar }, { new: true })
     .then((updatedUser) => res.send({ updatedUser }))
+    .orFail(new Error('NotFound'))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: `Переданы некорректные данные для обновления аватара: ${err}` });
-      } else if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(404).send({ message: 'Ресурс не найден' });
       } else {
         res.status(500).send({ message: `При обновлении аватара произошла ошибка на сервере: ${err}` });
       }
-    }).catch(next);
+    })
+    .catch(next);
 };
