@@ -1,78 +1,99 @@
 const User = require('../models/user');
 
-module.exports.getUsers = (req, res, next) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: `При поиске данных пользователей произошла ошибка на сервере: ${err}` }))
-    .catch(next);
-};
+function handleErr(err, res) {
+  if (err.name === 'CastError') {
+    res.status(400).send({ message: `Переданы некорректные данные: ${err}` });
+  } else if (err.message === 'NotFound') {
+    res.status(404).send({ message: 'Ресурс не найден' });
+  } else {
+    res.status(500).send({ message: `Произошла ошибка на сервере: ${err}` });
+  }
+}
 
-module.exports.getUserById = (req, res, next) => {
-  const userId = req.user._id;
+async function getUsers(req, res, next) {
+  try {
+    await User.find({})
+      .then((users) => res.send({ data: users }));
+  } catch (err) {
+    res.status(500).send({ message: `При поиске данных пользователей произошла ошибка на сервере: ${err}` });
+  }
+  next();
+}
 
-  User.findById(userId)
-    .then((user) => res.send({ user }))
-    .orFail(new Error('NotFound'))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: `Данные пользователя не найдены: ${err}` });
-      } else if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Ресурс не найден' });
-      } else {
-        res.status(500).send({ message: `При поиске пользователя произошла ошибка на сервере: ${err}` });
-      }
+async function getUserById(req, res, next) {
+  try {
+    User.findById(req.user._id)
+      .orFail(new Error('NotFound'))
+      .then((user) => res.send({ user }));
+  } catch (err) {
+    handleErr(err, res);
+  }
+  next();
+}
+
+async function createUser(req, res, next) {
+  try {
+    await User.create({
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
     })
-    .catch(next);
-};
+      .then((user) => res.send({
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+      }));
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      res.status(400).send({ message: `Переданы некорректные данные для создания пользователя: ${err}` });
+    } else {
+      res.status(500).send({ message: `При создании пользователя произошла ошибка на сервере: ${err}` });
+    }
+  }
+  next();
+}
 
-module.exports.createUser = (req, res, next) => {
-  User.create({ name: req.body.name, about: req.body.about, avatar: req.body.avatar })
-    .then((user) => res.send({ name: user.name, about: user.about, avatar: user.avatar }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: `Переданы некорректные данные для создания пользователя: ${err}` });
-      } else {
-        res.status(500).send({ message: `При создании пользователя произошла ошибка на сервере: ${err}` });
-      }
-    })
-    .catch(next);
-};
+async function updateUserProfile(req, res, next) {
+  try {
+    await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: req.body.name,
+        about: req.body.about,
+        runValidators: true,
+        new: true,
+      },
+    )
+      .orFail(new Error('NotFound'))
+      .then((updatedUser) => res.send({ updatedUser }));
+  } catch (err) {
+    handleErr(err, res);
+  }
+  next();
+}
 
-module.exports.updateUserProfile = (req, res, next) => {
-  const userId = req.user._id;
+async function updateUserAvatar(req, res, next) {
+  try {
+    await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        avatar: req.body.avatar,
+        runValidators: true,
+        new: true,
+      },
+    )
+      .orFail(new Error('NotFound'))
+      .then((updatedUser) => res.send({ updatedUser }));
+  } catch (err) {
+    handleErr(err, res);
+  }
+  next();
+}
 
-  User.findByIdAndUpdate(userId,
-    { name: req.body.name, about: req.body.about },
-    { runValidators: true },
-    { new: true })
-    .orFail(new Error('NotFound'))
-    .then((updatedUser) => res.send({ updatedUser }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: `Переданы некорректные данные для обновления профиля: ${err}` });
-      } else if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Ресурс не найден' });
-      } else {
-        res.status(500).send({ message: `При обновлении профиля пользователя произошла ошибка на сервере: ${err}` });
-      }
-    })
-    .catch(next);
-};
-
-module.exports.updateUserAvatar = (req, res, next) => {
-  const userId = req.user._id;
-
-  User.findByIdAndUpdate(userId, { avatar: req.body.avatar }, { new: true })
-    .then((updatedUser) => res.send({ updatedUser }))
-    .orFail(new Error('NotFound'))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: `Переданы некорректные данные для обновления аватара: ${err}` });
-      } else if (err.message === 'NotFound') {
-        res.status(404).send({ message: 'Ресурс не найден' });
-      } else {
-        res.status(500).send({ message: `При обновлении аватара произошла ошибка на сервере: ${err}` });
-      }
-    })
-    .catch(next);
+module.exports = {
+  getUsers,
+  getUserById,
+  createUser,
+  updateUserProfile,
+  updateUserAvatar,
 };
