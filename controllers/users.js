@@ -22,7 +22,7 @@ async function getUsers(req, res, next) {
 
 async function getUserById(req, res, next) {
   try {
-    User.findById(req.user._id)
+    await User.findById(req.params.userId)
       .orFail(new Error('NotFound'))
       .then((user) => res.send({ user }));
   } catch (err) {
