@@ -6,6 +6,8 @@ const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 const notFoundRoutes = require('./routes/notFound');
 
+const auth = require('./middlewares/auth');
+
 const {
   createUser,
   login,
@@ -24,20 +26,15 @@ mongoose.connect('mongodb://localhost:27017/mestodb',
     useFindAndModify: false,
   });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '60915708c187ca6b8806aa64',
-  };
-  next();
-});
-
-app.use('/users', usersRoutes);
-app.use('/cards', cardsRoutes);
 app.use('/signin', login);
 app.use('/signup', createUser);
 
+app.use('/users', auth, usersRoutes);
+app.use('/cards', auth, cardsRoutes);
 app.use('*', notFoundRoutes);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
+
+// https://images.unsplash.com/photo-1491557345352-5929e343eb89?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80

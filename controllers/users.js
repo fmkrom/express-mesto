@@ -72,6 +72,7 @@ async function login(req, res, next) {
       .then((user) => {
         const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
         res.send({ userToken: token });
+        console.log(token);
       });
     return;
   } catch (err) {
