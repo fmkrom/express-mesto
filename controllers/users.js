@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 function handleErr(err, res) {
@@ -33,16 +34,25 @@ async function getUserById(req, res, next) {
 
 async function createUser(req, res, next) {
   try {
-    await User.create({
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
-    })
-      .then((user) => res.send({
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-      }));
+    await bcrypt.hash(req.body.password, 10)
+      .then((hash) => {
+        User.create({
+          name: req.body.name,
+          about: req.body.about,
+          avatar: req.body.avatar,
+          email: req.body.email,
+          password: hash,
+        })
+          .then((user) => res.status(201).send({
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            about: user.about,
+            avatar: user.avatar,
+            password: user.password,
+          }));
+      });
+    return; // Всегда нужно в конце блока try использовать return!
   } catch (err) {
     if (err.name === 'ValidationError') {
       res.status(400).send({ message: `Переданы некорректные данные для создания пользователя: ${err}` });
