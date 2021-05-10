@@ -67,12 +67,8 @@ async function createUser(req, res, next) {
 }
 
 async function login(req, res, next) {
-  console.log(`This is Request: ${req.body.email}, ${req.body.password}`);
-
-  const { email, password } = req.body;
-
   try {
-    await User.findUserByCredentials(email, password)
+    await User.findUserByCredentials(req.body.email, req.body.password)
       .then((user) => {
         const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
         res.send({ userToken: token });
@@ -80,7 +76,7 @@ async function login(req, res, next) {
     return;
   } catch (err) {
     res.status(401)
-      .send({ message: `Ошибка логина: ${err.message}. Модель пользователя: ${User.findUserByCredentials}` });
+      .send({ message: `Ошибка логина: ${err.message}` });
   }
   next();
 }
