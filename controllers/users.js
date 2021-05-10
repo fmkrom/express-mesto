@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 function handleErr(err, res) {
@@ -56,9 +57,30 @@ async function createUser(req, res, next) {
   } catch (err) {
     if (err.name === 'ValidationError') {
       res.status(400).send({ message: `Переданы некорректные данные для создания пользователя: ${err}` });
+    } else if (err.name === 'NotFound') {
+      res.status(404).send({ message: `Ошибка создания пользователя: Запрос: ${req}, Ошибка: ${err}` });
     } else {
       res.status(500).send({ message: `При создании пользователя произошла ошибка на сервере: ${err}` });
     }
+  }
+  next();
+}
+
+async function login(req, res, next) {
+  console.log(`This is Request: ${req.body.email}, ${req.body.password}`);
+
+  const { email, password } = req.body;
+
+  try {
+    await User.findUserByCredentials(email, password)
+      .then((user) => {
+        const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+        res.send({ userToken: token });
+      });
+    return;
+  } catch (err) {
+    res.status(401)
+      .send({ message: `Ошибка логина: ${err.message}. Модель пользователя: ${User.findUserByCredentials}` });
   }
   next();
 }
@@ -104,6 +126,7 @@ module.exports = {
   getUsers,
   getUserById,
   createUser,
+  login,
   updateUserProfile,
   updateUserAvatar,
 };
