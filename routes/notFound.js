@@ -1,8 +1,8 @@
 const router = require('express').Router();
-const handleError = require('../utils/handleError');
+const { handleNotFoundError } = require('../utils/utils');
 
 router.get('*', (req, res) => {
-  handleError(res, 404, 'Ресурс не найден');
+  handleNotFoundError(res, 404, 'Ресурс не найден');
 });
 
 module.exports = router;

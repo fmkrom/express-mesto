@@ -42,12 +42,6 @@ async function createCard(req, res, next) {
   next();
 }
 
-/*
-Примечание: функция поиска карточки по ID не требуется в брифе,
-но создана для удобства работы с данными. В случае необходимости
-могу ее закомментировать или удалить:
-*/
-
 async function getCardById(req, res, next) {
   try {
     await Card.findById(req.params.cardId)

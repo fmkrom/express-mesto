@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const validator = require('validator');
+const isEmail = require('validator/lib/isEmail');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    validate: {
+      validator: (v) => isEmail(v),
+      message: 'Неправильный формат почты',
+    },
   },
   password: {
     type: String,
@@ -35,11 +39,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Образец использования валидатора:
-// validator.isEmail('foo@bar.com'); // => true
-
-// Пока сделаем так, потом надо уточнить, где его применять!
-// validator.isEmail(userSchema.email);
+// Пока что так. Потом - централизованно проверить работу валидатора!
 
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email })
