@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const { checkCardOwnership } = require('../utils/utils');
 
 function handleErr(err, res) {
   if (err.name === 'CastError') {
@@ -55,9 +56,18 @@ async function getCardById(req, res, next) {
 
 async function deleteCard(req, res, next) {
   try {
-    await Card.findByIdAndRemove(req.params.cardId)
+    await Card.findById(req.params.cardId)
       .orFail(new Error('NotFound'))
-      .then((deletedCard) => res.send({ deletedCard }));
+      .then((card) => {
+        const isOwn = Boolean(card.owner == req.user._id);
+
+        if (!isOwn) {
+          res.status(400).send({ message: 'У пользователя нет прав для удаления данной карточки' });
+        } else if (isOwn) {
+          Card.findByIdAndDelete({ cardId: card._id })
+            .then((deletedCard) => res.send({ message: `Карточка успешно удалена: ${deletedCard}` }));
+        }
+      });
   } catch (err) {
     handleErr(err, res);
   }
