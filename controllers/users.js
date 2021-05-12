@@ -23,17 +23,6 @@ async function getUsers(req, res, next) {
   next();
 }
 
-async function getUserById(req, res, next) {
-  try {
-    await User.findById(req.params.userId)
-      .orFail(new Error('NotFound'))
-      .then((user) => res.send({ user }));
-  } catch (err) {
-    handleErr(err, res);
-  }
-  next();
-}
-
 async function createUser(req, res, next) {
   try {
     await bcrypt.hash(req.body.password, 10)
@@ -74,7 +63,7 @@ async function login(req, res, next) {
         const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
 
         res.cookie('userToken', token, {
-          maxAge: 604800,
+          maxAge: 604800000,
           httpOnly: true,
           sameSite: true,
         }).send({
@@ -91,13 +80,27 @@ async function login(req, res, next) {
   next();
 }
 
+async function getCurrentUser(req, res, next) {
+  try {
+    await User.findById(req.user._id)
+      .orFail(new Error('NotFound'))
+      .then((user) => res.send({ user }));
+  } catch (err) {
+    handleErr(err, res);
+  }
+  next();
+}
+
 async function updateUserProfile(req, res, next) {
+  console.log(req.body);
   try {
     await User.findByIdAndUpdate(
       req.user._id,
       {
         name: req.body.name,
         about: req.body.about,
+      },
+      {
         runValidators: true,
         new: true,
       },
@@ -116,6 +119,8 @@ async function updateUserAvatar(req, res, next) {
       req.user._id,
       {
         avatar: req.body.avatar,
+      },
+      {
         runValidators: true,
         new: true,
       },
@@ -130,7 +135,7 @@ async function updateUserAvatar(req, res, next) {
 
 module.exports = {
   getUsers,
-  getUserById,
+  getCurrentUser,
   createUser,
   login,
   updateUserProfile,
