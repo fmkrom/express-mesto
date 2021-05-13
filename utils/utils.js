@@ -1,13 +1,15 @@
-function handleNotFoundError(res, ERROR_CODE, message) {
-  res
-    .status(ERROR_CODE)
-    .send({ message });
+const { BadRequestError } = require('../errors/400-BadRequestError');
+const { NotFoundError } = require('../errors/404-NotFoundError');
+const { InternalServerError } = require('../errors/500-InternalServerError');
+
+function handleErr(err) {
+  if (err.name === 'CastError') {
+    throw new BadRequestError('Переданы некорректные данные');
+  } else if (err.message === 'NotFound') {
+    throw new NotFoundError('Ресурс не найден');
+  } else {
+    throw new InternalServerError('Произошла ошибка на сервере');
+  }
 }
 
-function handleAuthorizationError(res) {
-  return res
-    .status(401)
-    .send({ message: `Необходима авторизация. Результат: ${res}` });
-}
-
-module.exports = { handleNotFoundError, handleAuthorizationError };
+module.exports = { handleErr };

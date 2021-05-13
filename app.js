@@ -35,6 +35,10 @@ app.use('/users', handleAuthorization, usersRoutes);
 app.use('/cards', handleAuthorization, cardsRoutes);
 app.use('*', notFoundRoutes);
 
+app.use((err, req, res, next) => {
+  res.status(err.statusCode).send({ message: err.message });
+});
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
