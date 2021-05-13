@@ -67,9 +67,7 @@ async function login(req, res, next) {
           httpOnly: true,
           sameSite: true,
         }).send({
-          userToken: token,
           userData: user,
-          cookies: res.cookies,
         });
       });
     return;
