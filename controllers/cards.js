@@ -64,10 +64,15 @@ async function deleteCard(req, res, next) {
         if (!isOwn) {
           res.status(400).send({ message: 'У пользователя нет прав для удаления данной карточки' });
         } else if (isOwn) {
-          Card.findByIdAndDelete({ cardId: card._id })
-            .then((deletedCard) => res.send({ message: `Карточка успешно удалена: ${deletedCard}` }));
+          Card.findByIdAndRemove(card._id)
+            .then((deletedCard) => {
+              res.send({ deletedCard });
+            }).catch((err) => {
+              console.log(`This is error: ${err}`);
+            });
         }
       });
+    return;
   } catch (err) {
     handleErr(err, res);
   }
