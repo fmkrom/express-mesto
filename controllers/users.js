@@ -59,7 +59,10 @@ function login(req, res, next) {
         httpOnly: true,
         sameSite: true,
       }).send({
-        userData: user,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
       });
     })
     .catch((err) => {

@@ -30,7 +30,12 @@ mongoose.connect('mongodb://localhost:27017/mestodb',
     useFindAndModify: false,
   });
 
-app.use('/signin', login);
+app.use('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).max(30),
+    password: Joi.string().required().min(8),
+  }),
+}), login);
 
 app.use('/signup', celebrate({
   body: Joi.object().keys({
@@ -38,7 +43,7 @@ app.use('/signup', celebrate({
     about: Joi.string().required().min(2).max(30),
     avatar: Joi.string().required(),
     email: Joi.string().required().min(2).max(30),
-    password: Joi.string().required(),
+    password: Joi.string().required().min(8),
   }),
 }), createUser);
 
@@ -46,7 +51,7 @@ app.use('/users', handleAuthorization, usersRoutes);
 app.use('/cards', handleAuthorization, cardsRoutes);
 app.use('*', notFoundRoutes);
 
-app.use(errors);
+app.use(errors());
 
 app.use((err, req, res, next) => {
   res.status(err.statusCode).send({ message: err.message });
