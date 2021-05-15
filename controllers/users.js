@@ -71,12 +71,19 @@ function login(req, res, next) {
     .catch(next);
 }
 
-function getCurrentUser(req, res, next) {
-  User.findById(req.user._id)
-    .orFail(new Error('NotFound'))
-    .then((user) => res.send({ user }))
-    .catch((err) => handleErr(err))
-    .catch(next);
+async function getCurrentUser(req, res, next) {
+  const requestPathIsCorrect = Boolean(req.path == '/me');
+  console.log(`This is request path: ${req.path} and it is: ${requestPathIsCorrect}`);
+
+  if (!requestPathIsCorrect) {
+    throw new BadRequestError('Переданы некорректные данные');
+  } else if (requestPathIsCorrect) {
+    await User.findById(req.user._id)
+      .orFail(new Error('NotFound'))
+      .then((user) => res.send({ user }))
+      .catch((err) => handleErr(err))
+      .catch(next);
+  }
 }
 
 function updateUserProfile(req, res, next) {

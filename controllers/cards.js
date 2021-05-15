@@ -51,19 +51,23 @@ function getCardById(req, res, next) {
 
 function deleteCard(req, res, next) {
   Card.findById(req.params.cardId)
-    .orFail(new Error('NotFound'))
-    .then((card) => {
-      const isOwn = Boolean(card.owner == req.user._id);
+    .then((foundCard) => {
+      const cardIsOwn = Boolean(foundCard.owner == req.user._id);
 
-      if (!isOwn) {
-        throw new ForbiddenError('У пользователя нет прав для удаления данной карточки');
-      } else if (isOwn) {
-        Card.findByIdAndRemove(card._id)
-          .then((deletedCard) => res.send({ deletedCard }))
-          .catch((err) => handleErr(err));
+      if (!cardIsOwn) {
+        throw new ForbiddenError('У пользователя нет прав на удаление карточки');
+      } else if (cardIsOwn) {
+        Card.findByIdAndRemove(foundCard._id)
+          .then((deletedCard) => res.send({ deletedCard }));
       }
+    }).catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.name === 'TypeError') {
+        throw new NotFoundError('Карточка не найдена');
+      }
+      next(err);
     })
-    .catch((err) => handleErr(err))
     .catch(next);
 }
 
