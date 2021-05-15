@@ -4,6 +4,7 @@ const { handleErr } = require('../utils/utils');
 const { BadRequestError } = require('../errors/400-BadRequestError');
 const { NotFoundError } = require('../errors/404-NotFoundError');
 const { InternalServerError } = require('../errors/500-InternalServerError');
+const { ForbiddenError } = require('../errors/403-ForbiddenError');
 
 function getCards(req, res, next) {
   Card.find({})
@@ -55,7 +56,7 @@ function deleteCard(req, res, next) {
       const isOwn = Boolean(card.owner == req.user._id);
 
       if (!isOwn) {
-        res.status(400).send({ message: 'У пользователя нет прав для удаления данной карточки' });
+        throw new ForbiddenError('У пользователя нет прав для удаления данной карточки');
       } else if (isOwn) {
         Card.findByIdAndRemove(card._id)
           .then((deletedCard) => res.send({ deletedCard }))

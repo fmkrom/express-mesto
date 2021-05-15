@@ -14,7 +14,7 @@ function handleAuthorization(req, res, next) {
   try {
     payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   } catch (err) {
-    throw new UnauthorizedError(`Передан некорректный токен: ${err}`);
+    throw new UnauthorizedError('Передан некорректный токен');
   }
   req.user = payload;
 

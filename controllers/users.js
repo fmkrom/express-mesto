@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const { handleErr } = require('../utils/utils');
+const { handleErr, checkReqPath } = require('../utils/utils');
 
 const { BadRequestError } = require('../errors/400-BadRequestError');
 const { NotFoundError } = require('../errors/404-NotFoundError');
@@ -15,7 +15,7 @@ function getUsers(req, res, next) {
   User.find({})
     .then((users) => res.send({ data: users }))
     .catch((err) => {
-      throw new InternalServerError(`Ошибка на сервере при получении данных пользователей: ${err}`);
+      throw new InternalServerError('Ошибка на сервере при получении данных пользователей');
     })
     .catch(next);
 }
@@ -37,13 +37,13 @@ function createUser(req, res, next) {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError(`Переданы некорректные данные при создании пользователя: ${err}`);
+        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
       } else if (err.code === 11000) {
         throw new ConflictError('Пользователь с такими данными уже зарегистрирован');
       } else if (err.name === 'NotFound') {
-        throw new NotFoundError(`Данные не найдены: ${err}`);
+        throw new NotFoundError('Данные не найдены');
       } else if (err.statusCode === 500) {
-        throw new InternalServerError(`Ошибка на сервере при получении данных пользователей: ${err}`);
+        throw new InternalServerError('Ошибка на сервере при получении данных пользователей');
       }
     })
     .catch(next);
@@ -66,7 +66,7 @@ function login(req, res, next) {
       });
     })
     .catch((err) => {
-      throw new UnauthorizedError(`Необходима авторизация: ${err}`);
+      throw new UnauthorizedError('Необходима авторизация');
     })
     .catch(next);
 }
@@ -123,3 +123,22 @@ module.exports = {
   updateUserProfile,
   updateUserAvatar,
 };
+
+/*
+function getCurrentUser(req, res, next) {
+  User.findById(req.user._id)
+    .orFail(new Error('NotFound'))
+    .then((user) => res.send({ user }))
+    .orFail(new Error('BadRequest'))
+    .catch((err) => {
+      if (err.message === 'BadRequest') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.message === 'NotFound') {
+        throw new NotFoundError('Данные не найденны');
+      } else {
+        throw new InternalServerError('Произошла ошибка на сервере');
+      }
+    })
+    .catch(next);
+}
+*/
