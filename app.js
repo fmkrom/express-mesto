@@ -25,6 +25,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb',
   {
+    useUnifiedTopology: true,
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
@@ -60,15 +61,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server launched sucesfully! App listening on port: ${PORT}`);
 });
-
-/*
-Ревьюэр:
-
-Надо исправить
-
-При передаче невалидного id должна быть ошибка 400, сейчас 404 https://pastenow.ru/7b85cb551f65fd29a92ad80d6b6d3d81 
-
-Не работает валидация ссылки https://pastenow.ru/352506724be14f3836b4c103950638d7
-Так же не работает валидация ссылки https://pastenow.ru/b28807babf234bf927eda55764cd6509
-
-*/

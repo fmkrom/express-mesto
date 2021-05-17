@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
-const { handleErr, checkReqPath } = require('../utils/utils');
+const { handleErr } = require('../utils/utils');
 
 const { BadRequestError } = require('../errors/400-BadRequestError');
 const { NotFoundError } = require('../errors/404-NotFoundError');
@@ -37,7 +37,7 @@ function createUser(req, res, next) {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError('Переданы некорректные данные при создании пользователя');
+        throw new BadRequestError(`Переданы некорректные данные: ${err.message}`);
       } else if (err.code === 11000) {
         throw new ConflictError('Пользователь с такими данными уже зарегистрирован');
       } else if (err.name === 'NotFound') {
@@ -71,19 +71,26 @@ function login(req, res, next) {
     .catch(next);
 }
 
-async function getCurrentUser(req, res, next) {
-  const requestPathIsCorrect = Boolean(req.path == '/me');
-  console.log(`This is request path: ${req.path} and it is: ${requestPathIsCorrect}`);
-
-  if (!requestPathIsCorrect) {
-    throw new BadRequestError('Переданы некорректные данные');
-  } else if (requestPathIsCorrect) {
-    await User.findById(req.user._id)
-      .orFail(new Error('NotFound'))
-      .then((user) => res.send({ user }))
-      .catch((err) => handleErr(err))
-      .catch(next);
-  }
+function getCurrentUser(req, res, next) {
+  User.findById(req.user._id)
+    .orFail(new Error('NotFound'))
+    .then((user) => {
+      if (!user) {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else {
+        res.status(200).send({ user });
+      }
+    }).catch((err) => {
+      if (err.kind === 'ObjectId') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.name === 'CastError') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.message === 'NotFound') {
+        throw new NotFoundError('Данные не найдены');
+      }
+      next(err);
+    })
+    .catch(next);
 }
 
 function updateUserProfile(req, res, next) {
@@ -118,7 +125,15 @@ function updateUserAvatar(req, res, next) {
     .orFail(new Error('NotFound'))
     .then((updatedUser) => res.send({ updatedUser }))
     .then()
-    .catch((err) => handleErr(err))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        throw new BadRequestError(`Переданы некорректные данные: ${err.message}`);
+      } else if (err.message === 'TypeError') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else {
+        handleErr(err);
+      }
+    })
     .catch(next);
 }
 
@@ -130,22 +145,3 @@ module.exports = {
   updateUserProfile,
   updateUserAvatar,
 };
-
-/*
-function getCurrentUser(req, res, next) {
-  User.findById(req.user._id)
-    .orFail(new Error('NotFound'))
-    .then((user) => res.send({ user }))
-    .orFail(new Error('BadRequest'))
-    .catch((err) => {
-      if (err.message === 'BadRequest') {
-        throw new BadRequestError('Переданы некорректные данные');
-      } else if (err.message === 'NotFound') {
-        throw new NotFoundError('Данные не найденны');
-      } else {
-        throw new InternalServerError('Произошла ошибка на сервере');
-      }
-    })
-    .catch(next);
-}
-*/
