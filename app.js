@@ -10,6 +10,7 @@ const cardsRoutes = require('./routes/cards');
 const notFoundRoutes = require('./routes/notFound');
 
 const { handleAuthorization } = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const {
   createUser,
@@ -31,6 +32,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb',
     useFindAndModify: false,
   });
 
+app.use(requestLogger);
+
 app.use('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().min(2).max(30),
@@ -40,9 +43,9 @@ app.use('/signin', celebrate({
 
 app.use('/signup', celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
-    avatar: Joi.string().required(),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string(),
     email: Joi.string().required().min(2).max(30),
     password: Joi.string().required().min(8),
   }),
@@ -51,6 +54,8 @@ app.use('/signup', celebrate({
 app.use('/users', handleAuthorization, usersRoutes);
 app.use('/cards', handleAuthorization, cardsRoutes);
 app.use('*', notFoundRoutes);
+
+app.use(errorLogger);
 
 app.use(errors());
 
