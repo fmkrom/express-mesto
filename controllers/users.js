@@ -63,6 +63,7 @@ function login(req, res, next) {
         about: user.about,
         avatar: user.avatar,
         email: user.email,
+        currentToken: token,
       });
     })
     .catch((err) => {
@@ -75,15 +76,31 @@ function getCurrentUser(req, res, next) {
   User.findById(req.user._id)
     .orFail(new Error('NotFound'))
     .then((user) => {
+      res.status(200).send({ user });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.message === 'NotFound') {
+        throw new NotFoundError('Данные не найдены');
+      }
+      next(err);
+    })
+    .catch(next);
+}
+
+function getUserById(req, res, next) {
+  User.findById(req.params.userId)
+    .orFail(new Error('NotFound'))
+    .then((user) => {
       if (!user) {
         throw new BadRequestError('Переданы некорректные данные');
       } else {
         res.status(200).send({ user });
       }
-    }).catch((err) => {
-      if (err.kind === 'ObjectId') {
-        throw new BadRequestError('Переданы некорректные данные');
-      } else if (err.name === 'CastError') {
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
         throw new BadRequestError('Переданы некорректные данные');
       } else if (err.message === 'NotFound') {
         throw new NotFoundError('Данные не найдены');
@@ -144,4 +161,5 @@ module.exports = {
   login,
   updateUserProfile,
   updateUserAvatar,
+  getUserById,
 };

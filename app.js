@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
+const cors = require('cors');
 
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
@@ -17,8 +18,13 @@ const {
   login,
 } = require('./controllers/users');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3005 } = process.env;
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+}));
 
 app.use(cookieParser());
 app.use(bodyParser.json());
