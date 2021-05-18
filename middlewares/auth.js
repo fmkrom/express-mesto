@@ -6,7 +6,7 @@ const { UnauthorizedError } = require('../errors/401-UnauthorizedError');
 function handleAuthorization(req, res, next) {
   const token = req.cookies.userToken;
 
-  console.log(`This is token in backend: ${token}`);
+  // console.log(`This is token in backend: ${token}`);
 
   if (!token) {
     throw new UnauthorizedError('Необходима авторизация');

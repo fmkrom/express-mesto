@@ -38,13 +38,20 @@ function createCard(req, res, next) {
 function getCardById(req, res, next) {
   Card.findById(req.params.cardId)
     .orFail(new Error('NotFound'))
-    .then((foundCard) => res.send({ foundCard }))
-    .catch((err) => {
-      if (err.message === 'NotFound') {
-        throw new NotFoundError('Данные карточки не найдены');
+    .then((card) => {
+      if (!card) {
+        throw new BadRequestError('Переданы некорректные данные');
       } else {
-        throw new InternalServerError('Произошла ошибка на сервере');
+        res.status(200).send({ card });
       }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new BadRequestError('Переданы некорректные данные');
+      } else if (err.message === 'NotFound') {
+        throw new NotFoundError('Данные не найдены');
+      }
+      next(err);
     })
     .catch(next);
 }
