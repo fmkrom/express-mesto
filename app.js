@@ -10,7 +10,7 @@ const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 const notFoundRoutes = require('./routes/notFound');
 
-const { handleAuthorization } = require('./middlewares/auth');
+const { auth } = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const {
@@ -18,7 +18,7 @@ const {
   login,
 } = require('./controllers/users');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3005 } = process.env;
 const app = express();
 
 app.use(cors({
@@ -40,6 +40,12 @@ mongoose.connect('mongodb://localhost:27017/mestodb',
 
 app.use(requestLogger);
 
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
 app.use('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().min(2).max(30),
@@ -57,8 +63,8 @@ app.use('/signup', celebrate({
   }),
 }), createUser);
 
-app.use('/users', handleAuthorization, usersRoutes);
-app.use('/cards', handleAuthorization, cardsRoutes);
+app.use('/users', auth, usersRoutes);
+app.use('/cards', auth, cardsRoutes);
 app.use('*', notFoundRoutes);
 
 app.use(errorLogger);

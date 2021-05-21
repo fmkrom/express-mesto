@@ -54,16 +54,13 @@ function login(req, res, next) {
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
 
-      res.cookie('userToken', token, {
-        maxAge: 604800000,
-        httpOnly: true,
-        sameSite: true,
-      }).send({
+      res.send({
         name: user.name,
         about: user.about,
         avatar: user.avatar,
         email: user.email,
-        currentToken: token,
+        id: user._id,
+        userToken: token,
       });
     })
     .catch((err) => {
