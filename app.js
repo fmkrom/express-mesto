@@ -23,6 +23,7 @@ const {
 const { PORT = 3005 } = process.env;
 const app = express();
 
+/*
 const allowedCors = [
   'https://api.fmkrom.students.nomoredomains.icu',
   'http://api.fmkrom.students.nomoredomains.icu',
@@ -40,6 +41,15 @@ app.use(
     allowedHeaders: 'Origin,Content-Type,Accept',
   })
 );
+*/
+
+app.use(
+  cors({
+   origin: true,
+   exposedHeaders: '*',
+   credentials: true,
+  })
+)
 
 app.use(cookieParser());
 app.use(bodyParser.json());
