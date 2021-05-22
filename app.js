@@ -21,10 +21,10 @@ const {
 const { PORT = 3000 } = process.env;
 const app = express();
 
-/* app.use(cors({
-  origin: 'http://localhost:3000',
+app.use(cors({
+  origin: 'http://http://fmkrom.students.nomoredomains.club//',
   credentials: true,
-})); */
+}));
 
 app.use(cookieParser());
 app.use(bodyParser.json());
