@@ -6,7 +6,7 @@ const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 const cors = require('cors');
 
-const { allowedCors } = require('./utils/allowedCors');
+// const { allowedCors } = require('./utils/allowedCors');
 
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
@@ -22,6 +22,15 @@ const {
 
 const { PORT = 3005 } = process.env;
 const app = express();
+
+const allowedCors = [
+  'https://api.fmkrom.students.nomoredomains.icu',
+  'http://api.fmkrom.students.nomoredomains.icu',
+  'https://fmkrom.students.nomoredomains.club',
+  'http://fmkrom.students.nomoredomains.club',
+  'http://localhost:3000',
+  'http://localhost:3005',
+];
 
 app.use(
   cors({
