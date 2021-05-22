@@ -22,7 +22,7 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(cors({
-  origin: 'http://http://fmkrom.students.nomoredomains.club//',
+  origin: 'http://fmkrom.students.nomoredomains.club',
   credentials: true,
 }));
 
